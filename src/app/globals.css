@@ -1,26 +1,159 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ── Surfaces ─────────────────────────────── */
+  --color-ink: #0a0a0a;
+  --color-ink-800: #0f0f0f;
+  --color-ink-700: #151515;
+  --color-ink-600: #1c1c1c;
+  --color-line: rgba(255, 255, 255, 0.09);
+
+  /* ── Type ─────────────────────────────────── */
+  --color-bone: #f4f2ec;
+  --color-ash: #9c9c95;
+  --color-dim: #66665f;
+
+  /* ── Accents (streetwear red, not corporate) ─ */
+  --color-blood: #ff2d20;
+  --color-blood-deep: #b3120b;
+  --color-ember: #ff6a3d;
+
+  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    background-color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Lenis owns the scroll; native smooth scrolling fights it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    /* `clip`, never `hidden`: overflow-x:hidden computes overflow-y:auto, which
+       turns body into a scroll container and silently breaks every
+       `position: sticky` on the page (the hero stage stops sticking and you
+       scroll through an empty runway). `clip` crops without scrolling. */
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-blood);
+    color: var(--color-ink);
+  }
+
+  /* Display type wants to be tight and loud. */
+  .font-display {
+    letter-spacing: -0.015em;
+    line-height: 0.85;
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Section eyebrow: small, tracked-out, accent bullet */
+  .eyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-ash);
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 1px rgba(244, 242, 236, 0.28);
+    color: transparent;
+  }
+
+  .edge-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  /* Reveal targets: CSS owns opacity only — GSAP owns the Y channel, or a
+     stylesheet translate silently survives a yPercent tween. */
+  .reveal {
+    opacity: 0;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* ── Film grain ─────────────────────────────── */
+.grain::after {
+  content: "";
+  position: fixed;
+  /* Only as oversized as the 3% drift needs. At -50% this layer was 4x the
+     viewport area — a lot of pixels to composite every frame for nothing. */
+  inset: -6%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Own compositor layer so the noise never repaints the content beneath it. */
+  will-change: transform;
+  animation: grain-shift 700ms steps(1) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-3%, 2%, 0); }
+  50% { transform: translate3d(2%, -3%, 0); }
+  75% { transform: translate3d(-2%, -2%, 0); }
+  100% { transform: translate3d(3%, 1%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain::after { animation: none; }
+}
+
+/* ── Marquee ────────────────────────────────── */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-slide var(--marquee-speed, 38s) linear infinite;
+}
+.marquee-track[data-reverse="true"] {
+  animation-direction: reverse;
+}
+.marquee-host:hover .marquee-track[data-pause="true"] {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-slide {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
 }
