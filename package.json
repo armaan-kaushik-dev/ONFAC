@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/with-build-dir.mjs build",
-    "start": "node scripts/with-build-dir.mjs start",
+    "build": "next build",
+    "start": "next start",
+    "build:isolated": "node scripts/with-build-dir.mjs build",
+    "start:isolated": "node scripts/with-build-dir.mjs start",
     "lint": "eslint"
   },
   "dependencies": {
